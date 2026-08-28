@@ -198,35 +198,12 @@ def automation_worker():
 # ================= 🌐 FLASK WEB ROUTES =================
 app = Flask(__name__)
 
+# ================= 🌐 FLASK WEB ROUTES =================
+app = Flask(__name__)
+
 @app.route('/')
 def dashboard():
     return render_template('index.html')
-    <html>
-        <head><title>AssetPrim Automation</title></head>
-        <body style="font-family: Arial; padding: 20px;">
-            <h2>🚀 AssetPrim Social Media Automation</h2>
-            <p><strong>Status:</strong> <span id="status">Loading...</span></p>
-            <p><strong>Courses Found:</strong> <span id="total">0</span> | <strong>Generated:</strong> <span id="processed">0</span> | <strong>Skipped:</strong> <span id="skipped">0</span></p>
-            <button onclick="fetch('/start', {method: 'POST'})" style="padding: 10px; background: green; color: white;">Start Automation</button>
-            <button onclick="fetch('/stop', {method: 'POST'})" style="padding: 10px; background: red; color: white;">Stop Automation</button>
-            <hr>
-            <h3>Live Logs:</h3>
-            <pre id="logs" style="background: #222; color: #0f0; padding: 10px; height: 300px; overflow-y: scroll;"></pre>
-            
-            <script>
-                setInterval(() => {
-                    fetch('/status').then(r => r.json()).then(data => {
-                        document.getElementById('status').innerText = data.status_msg + (data.is_running ? ' (Running)' : ' (Stopped)');
-                        document.getElementById('total').innerText = data.total_courses;
-                        document.getElementById('processed').innerText = data.processed;
-                        document.getElementById('skipped').innerText = data.skipped;
-                        document.getElementById('logs').innerText = data.logs.join('\\n');
-                    });
-                }, 2000);
-            </script>
-        </body>
-    </html>
-    """
 
 @app.route('/status')
 def status():
