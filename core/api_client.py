@@ -1,47 +1,37 @@
 import os
-import cloudscraper
+import requests
 import logging
 
 logger = logging.getLogger(__name__)
 
-ASSETPRIM_API_URL = os.getenv("ASSETPRIM_API_URL", "https://assetprim.com/api/products.php")
+# আপনার Apps Script-এর URL টি এখানে দিন অথবা Render-এর Environment Variable-এ সেট করুন
+APPS_SCRIPT_URL = os.getenv("APPS_SCRIPT_URL", "https://script.google.com/macros/s/AKfycbyTvxs7JTNc8HJ7NSMPtTk49XO3DQ4tCVbuB9BOLzG8qy4oBkQ4UFXy7rBv16ciDaabGw/exec") 
 ASSETPRIM_API_TOKEN = os.getenv("ASSETPRIM_API_TOKEN")
 
 class AssetPrimAPI:
     @staticmethod
     def fetch_active_products():
-        """সব অ্যাক্টিভ কোর্স নিয়ে আসবে (Pagination সহ)"""
+        """Apps Script এর মাধ্যমে InfinityFree থেকে ডেটা নিয়ে আসবে"""
         all_courses = []
         offset = 0
         limit = 100
         
-        # 🛡️ Cloudflare/Imunify360 বাইপাস করার জন্য Cloudscraper
-        scraper = cloudscraper.create_scraper(
-            browser={
-                'browser': 'chrome',
-                'platform': 'windows',
-                'desktop': True
-            }
-        )
-        
         while True:
             try:
-                url = f"{ASSETPRIM_API_URL}?token={ASSETPRIM_API_TOKEN}&limit={limit}&offset={offset}"
-                logger.info(f"Fetching products from API... (Offset: {offset})")
+                # Apps Script-এ প্যারামিটার পাঠানো হচ্ছে
+                url = f"{APPS_SCRIPT_URL}?token={ASSETPRIM_API_TOKEN}&limit={limit}&offset={offset}"
+                logger.info(f"Fetching products via Apps Script... (Offset: {offset})")
                 
-                # requests.get এর বদলে scraper.get
-                response = scraper.get(url, timeout=30)
+                response = requests.get(url, timeout=30)
                 
-                # যদি সার্ভার 200 OK না দেয়
                 if response.status_code != 200:
-                    logger.error(f"API HTTP Error {response.status_code}. Raw response: {response.text[:200]}")
+                    logger.error(f"Apps Script HTTP Error {response.status_code}. Raw response: {response.text[:200]}")
                     break
                     
-                # JSON পার্স করার চেষ্টা
                 try:
                     data = response.json()
                 except Exception as json_err:
-                    logger.error(f"JSON Parse Error: API did not return JSON. Raw response: {response.text[:250]}")
+                    logger.error(f"JSON Parse Error. Raw response: {response.text[:250]}")
                     break
                 
                 if not data.get("success"):
