@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AssetPrim AI Social Media Automation</title>
+    <title>AssetPrim AI Automation Dashboard</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
         .log-console { scroll-behavior: smooth; }
-        .view-section { display: none; }
-        .view-section.active { display: block; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 h-screen flex overflow-hidden">
@@ -23,157 +28,231 @@
             <span class="text-lg font-bold tracking-wider">AssetPrim AI</span>
         </div>
         <nav class="flex-1 overflow-y-auto py-4">
-            <ul class="space-y-1" id="nav-menu">
-                <li><a href="#" onclick="switchView('overview', this)" class="nav-item active flex items-center px-6 py-3 bg-indigo-600 text-white border-l-4 border-indigo-400"><i class="fa-solid fa-chart-line w-5 mr-3"></i> Overview</a></li>
-                <li><a href="#" onclick="switchView('products', this)" class="nav-item flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-layer-group w-5 mr-3"></i> Products</a></li>
-                <li><a href="#" onclick="switchView('prompts', this)" class="nav-item flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-pen-nib w-5 mr-3"></i> Prompt Builder</a></li>
-                <li><a href="#" onclick="switchView('posts', this)" class="nav-item flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-brands fa-facebook w-5 mr-3"></i> Generated Posts</a></li>
-                <li><a href="#" onclick="switchView('settings', this)" class="nav-item flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"><i class="fa-solid fa-gear w-5 mr-3"></i> Settings</a></li>
+            <ul class="space-y-1">
+                <li>
+                    <a href="#" class="flex items-center px-6 py-3 bg-indigo-600 text-white border-l-4 border-indigo-400">
+                        <i class="fa-solid fa-chart-line w-5 mr-3"></i> Overview
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
+                        <i class="fa-solid fa-layer-group w-5 mr-3"></i> Products
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
+                        <i class="fa-solid fa-pen-nib w-5 mr-3"></i> Prompt & Templates
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
+                        <i class="fa-brands fa-facebook w-5 mr-3"></i> Generated Posts
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center px-6 py-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
+                        <i class="fa-solid fa-gear w-5 mr-3"></i> Settings
+                    </a>
+                </li>
             </ul>
         </nav>
+        <div class="p-4 border-t border-slate-800 text-xs text-slate-500 text-center">
+            v1.0.0 | Render Automation
+        </div>
     </aside>
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden">
         <!-- Topbar -->
         <header class="h-16 bg-white shadow-sm flex items-center justify-between px-8 z-10">
-            <h1 class="text-xl font-semibold text-slate-700" id="page-title">Dashboard Overview</h1>
-            <div class="flex items-center">
-                <span id="system-status" class="text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-full"><i class="fa-solid fa-circle text-slate-400 text-xs mr-2"></i> Idle</span>
+            <h1 class="text-xl font-semibold text-slate-700">Automation Dashboard</h1>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center">
+                    <span class="relative flex h-3 w-3 mr-2">
+                      <span id="status-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
+                      <span id="status-dot" class="relative inline-flex rounded-full h-3 w-3 bg-slate-500"></span>
+                    </span>
+                    <span id="system-status" class="text-sm font-medium text-slate-600">System Idle</span>
+                </div>
             </div>
         </header>
 
-        <!-- Scrollable Content Area -->
+        <!-- Scrollable Content -->
         <div class="flex-1 overflow-y-auto p-8">
             
-            <!-- VIEW: OVERVIEW (Main Automation Panel) -->
-            <div id="view-overview" class="view-section active">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6"><p class="text-sm text-slate-500 font-medium">Courses Found</p><p class="text-2xl font-bold" id="stat-total">0</p></div>
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6"><p class="text-sm text-slate-500 font-medium">Generated</p><p class="text-2xl font-bold text-green-600" id="stat-processed">0</p></div>
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6"><p class="text-sm text-slate-500 font-medium">Skipped</p><p class="text-2xl font-bold text-yellow-600" id="stat-skipped">0</p></div>
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6"><p class="text-sm text-slate-500 font-medium">Failed</p><p class="text-2xl font-bold text-red-600" id="stat-failed">0</p></div>
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <!-- Total Products -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex items-center">
+                    <div class="rounded-full bg-blue-100 p-3 mr-4">
+                        <i class="fa-solid fa-box-open text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">Total Active Courses</p>
+                        <p class="text-2xl font-bold text-slate-800" id="stat-total">0</p>
+                    </div>
+                </div>
+                <!-- Processed -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex items-center">
+                    <div class="rounded-full bg-green-100 p-3 mr-4">
+                        <i class="fa-solid fa-check-double text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">Generated Posts</p>
+                        <p class="text-2xl font-bold text-slate-800" id="stat-processed">0</p>
+                    </div>
+                </div>
+                <!-- Skipped -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex items-center">
+                    <div class="rounded-full bg-yellow-100 p-3 mr-4">
+                        <i class="fa-solid fa-forward-step text-yellow-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">Skipped (Duplicate)</p>
+                        <p class="text-2xl font-bold text-slate-800" id="stat-skipped">0</p>
+                    </div>
+                </div>
+                <!-- Failed -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex items-center">
+                    <div class="rounded-full bg-red-100 p-3 mr-4">
+                        <i class="fa-solid fa-triangle-exclamation text-red-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">Failed / Errors</p>
+                        <p class="text-2xl font-bold text-slate-800" id="stat-failed">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration & Controls -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <!-- Settings Panel -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 lg:col-span-2">
+                    <h2 class="text-lg font-semibold text-slate-800 mb-4"><i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>Generation Settings</h2>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Target Platforms</label>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" class="form-checkbox text-indigo-600 rounded" checked disabled>
+                                <span class="ml-2 text-slate-700">Facebook</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" class="form-checkbox text-indigo-600 rounded" checked disabled>
+                                <span class="ml-2 text-slate-700">Instagram</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" class="form-checkbox text-indigo-600 rounded" checked disabled>
+                                <span class="ml-2 text-slate-700">Telegram</span>
+                            </label>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">*Platforms are currently fixed in the backend logic.</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Content Template</label>
+                        <select class="w-full border-slate-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm p-2.5 border bg-slate-50" disabled>
+                            <option>Direct Response Copy (Default System Prompt)</option>
+                            <option>Short & Punchy</option>
+                            <option>Feature-Driven</option>
+                        </select>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-6 flex gap-4 pt-4 border-t border-slate-100">
+                        <button onclick="startAutomation()" id="btn-start" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors shadow-sm flex justify-center items-center">
+                            <i class="fa-solid fa-play mr-2"></i> Start Automation
+                        </button>
+                        <button onclick="stopAutomation()" id="btn-stop" class="flex-1 bg-white hover:bg-red-50 text-red-600 border border-red-200 font-medium py-2.5 px-4 rounded-lg transition-colors shadow-sm flex justify-center items-center disabled:opacity-50" disabled>
+                            <i class="fa-solid fa-stop mr-2"></i> Stop Execution
+                        </button>
+                    </div>
                 </div>
 
-                <div class="bg-slate-900 rounded-xl shadow-lg flex flex-col overflow-hidden h-96">
+                <!-- Live Logs Console -->
+                <div class="bg-slate-900 rounded-xl shadow-lg flex flex-col overflow-hidden">
                     <div class="bg-slate-800 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
-                        <h3 class="text-sm font-semibold text-slate-200"><i class="fa-solid fa-terminal mr-2"></i>Live Automation Logs</h3>
-                        <div>
-                            <button onclick="startAuto()" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 rounded mr-2"><i class="fa-solid fa-play"></i> Start</button>
-                            <button onclick="stopAuto()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded"><i class="fa-solid fa-stop"></i> Stop</button>
+                        <h3 class="text-sm font-semibold text-slate-200"><i class="fa-solid fa-terminal mr-2"></i>Live Console Logs</h3>
+                        <div class="flex space-x-1.5">
+                            <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
                         </div>
                     </div>
-                    <div class="flex-1 p-4 overflow-y-auto log-console" id="log-container">
-                        <pre id="logs" class="text-xs text-green-400 font-mono whitespace-pre-wrap leading-relaxed">System Ready...</pre>
+                    <div class="flex-1 p-4 overflow-y-auto log-console" id="log-container" style="max-height: 350px;">
+                        <pre id="logs" class="text-xs text-green-400 font-mono whitespace-pre-wrap leading-relaxed">System initialized. Ready to start automation...</pre>
                     </div>
                 </div>
             </div>
-
-            <!-- VIEW: PROMPTS -->
-            <div id="view-prompts" class="view-section">
-                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-                    <h2 class="text-lg font-bold mb-4">Prompt Builder & Templates</h2>
-                    <div class="grid grid-cols-2 gap-6 mb-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Select Template</label>
-                            <select class="w-full border-slate-300 rounded p-2 border">
-                                <option>None (Follow Custom Prompt Only)</option>
-                                <option>Short & Punchy</option>
-                                <option>Feature-Driven</option>
-                                <option>Promotional</option>
-                                <option>Urgency / FOMO</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Instruction Priority</label>
-                            <select class="w-full border-slate-300 rounded p-2 border">
-                                <option>Prompt First</option>
-                                <option>Template First</option>
-                                <option>Balanced</option>
-                            </select>
-                        </div>
-                    </div>
-                    <label class="block text-sm font-medium mb-1">Custom User Prompt</label>
-                    <textarea class="w-full h-48 border border-slate-300 rounded p-4 font-mono text-sm" placeholder="Write your specific instructions for Gemini here..."></textarea>
-                    <div class="mt-4 bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded text-sm">
-                        <i class="fa-solid fa-triangle-exclamation mr-2"></i> <b>System Rules Enforced:</b> No links in main post, fixed pinned comment URL, no hallucinated features.
-                    </div>
-                    <button class="mt-4 bg-indigo-600 text-white px-4 py-2 rounded">Save Configuration</button>
-                </div>
-            </div>
-
-            <!-- VIEW: PRODUCTS (Placeholder) -->
-            <div id="view-products" class="view-section">
-                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 text-center text-slate-500 py-20">
-                    <i class="fa-solid fa-layer-group text-4xl mb-4 text-slate-300"></i>
-                    <h2 class="text-xl font-bold text-slate-700">Product Synchronization</h2>
-                    <p>This module will fetch and display products from AssetPrim PHP API.</p>
-                </div>
-            </div>
-
-            <!-- VIEW: SETTINGS (Placeholder) -->
-            <div id="view-settings" class="view-section">
-                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-                    <h2 class="text-xl font-bold text-slate-700 mb-6">Automation Settings</h2>
-                    <div class="space-y-4">
-                        <div><label class="font-medium">Batch Size:</label> <input type="number" value="10" class="border p-1 rounded ml-2 w-16"></div>
-                        <div><label class="font-medium">Auto New Product Detection:</label> <input type="checkbox" class="ml-2"></div>
-                        <div><label class="font-medium">Duplicate Protection:</label> <input type="checkbox" checked class="ml-2"></div>
-                    </div>
-                </div>
-            </div>
-
+            
         </div>
     </main>
 
     <script>
-        // SPA View Switcher
-        function switchView(viewId, element) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(el => {
-                el.classList.remove('bg-indigo-600', 'text-white', 'border-l-4', 'border-indigo-400');
-                el.classList.add('text-slate-400');
-            });
-            
-            document.getElementById('view-' + viewId).classList.add('active');
-            
-            element.classList.remove('text-slate-400');
-            element.classList.add('bg-indigo-600', 'text-white', 'border-l-4', 'border-indigo-400');
-            
-            document.getElementById('page-title').innerText = element.innerText;
+        // UI Update Logic
+        function updateUI(data) {
+            document.getElementById('stat-total').innerText = data.total_courses;
+            document.getElementById('stat-processed').innerText = data.processed;
+            document.getElementById('stat-skipped').innerText = data.skipped;
+            document.getElementById('stat-failed').innerText = data.failed;
+
+            // Update Logs
+            const logElement = document.getElementById('logs');
+            const logContainer = document.getElementById('log-container');
+            if (data.logs.length > 0) {
+                logElement.innerText = data.logs.join('\n');
+                // Auto scroll to bottom
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+
+            // Update Status Badge
+            const statusText = document.getElementById('system-status');
+            const statusPing = document.getElementById('status-ping');
+            const statusDot = document.getElementById('status-dot');
+            const btnStart = document.getElementById('btn-start');
+            const btnStop = document.getElementById('btn-stop');
+
+            if (data.is_running) {
+                statusText.innerText = data.status_msg + " (Running...)";
+                statusPing.classList.replace('bg-slate-400', 'bg-green-400');
+                statusDot.classList.replace('bg-slate-500', 'bg-green-500');
+                
+                btnStart.disabled = true;
+                btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+                btnStop.disabled = false;
+                btnStop.classList.remove('opacity-50');
+            } else {
+                statusText.innerText = data.status_msg === "Idle" ? "System Idle" : data.status_msg;
+                statusPing.classList.replace('bg-green-400', 'bg-slate-400');
+                statusDot.classList.replace('bg-green-500', 'bg-slate-500');
+                
+                btnStart.disabled = false;
+                btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnStop.disabled = true;
+                btnStop.classList.add('opacity-50');
+            }
         }
 
-        // Fetch Status & Update Dashboard
+        // Fetch Status every 2 seconds
         setInterval(() => {
-            fetch('/api/status')
+            fetch('/status')
                 .then(res => res.json())
-                .then(data => {
-                    document.getElementById('stat-total').innerText = data.total_courses;
-                    document.getElementById('stat-processed').innerText = data.processed;
-                    document.getElementById('stat-skipped').innerText = data.skipped;
-                    document.getElementById('stat-failed').innerText = data.failed;
-                    
-                    const logsElement = document.getElementById('logs');
-                    if (data.logs.length > 0) {
-                        logsElement.innerText = data.logs.join('\n');
-                        const logContainer = document.getElementById('log-container');
-                        logContainer.scrollTop = logContainer.scrollHeight;
-                    }
-
-                    const statusBadge = document.getElementById('system-status');
-                    if (data.is_running) {
-                        statusBadge.innerHTML = `<i class="fa-solid fa-circle text-green-500 text-xs mr-2 animate-pulse"></i> ${data.status_msg}`;
-                        statusBadge.className = "text-sm font-medium text-green-700 bg-green-100 px-3 py-1 rounded-full";
-                    } else {
-                        statusBadge.innerHTML = `<i class="fa-solid fa-circle text-slate-400 text-xs mr-2"></i> ${data.status_msg}`;
-                        statusBadge.className = "text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-full";
-                    }
-                })
-                .catch(err => console.error("Status fetch error:", err));
+                .then(data => updateUI(data))
+                .catch(err => console.error("Status check failed:", err));
         }, 2000);
 
-        function startAuto() { fetch('/api/start', { method: 'POST' }); }
-        function stopAuto() { fetch('/api/stop', { method: 'POST' }); }
+        // Control Actions
+        function startAutomation() {
+            fetch('/start', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => console.log(data));
+        }
+
+        function stopAutomation() {
+            fetch('/stop', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => console.log(data));
+        }
     </script>
 </body>
 </html>
