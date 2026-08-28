@@ -11,6 +11,10 @@ load_dotenv()
 
 # Core মডিউলগুলো ইম্পোর্ট করা হচ্ছে
 from core.automation import AutomationEngine
+from core.db_manager import DatabaseManager
+
+# ডাটাবেস ম্যানেজার ইনিশিয়ালাইজ করা হলো
+db_manager = DatabaseManager()
 
 # ================= 🌐 GLOBAL STATE =================
 app_state = {
@@ -40,14 +44,12 @@ logger.addHandler(dash_handler)
 # ================= 🌐 FLASK APP SETUP =================
 app = Flask(__name__)
 
-# Error Handler (404/Favicon এরর ইগনোর করার জন্য ফিক্স করা হয়েছে)
+# Error Handler (404/Favicon এরর ইগনোর করার জন্য)
 @app.errorhandler(Exception)
 def handle_exception(e):
-    # যদি এটি সাধারণ 404 বা HTTP এরর হয়, তবে বিশাল লগ না দেখিয়ে ইগনোর করবে
     if isinstance(e, HTTPException):
         return jsonify({"success": False, "error": e.description}), e.code
         
-    # শুধুমাত্র আসল কোড ক্র্যাশ করলে লগে দেখাবে
     logger.error(f"Server Error: {traceback.format_exc()}")
     return jsonify({"success": False, "error": str(e)}), 500
 
@@ -58,6 +60,16 @@ def dashboard():
 @app.route('/api/status')
 def status():
     return jsonify(app_state)
+
+# 🚀 নতুন রাউট: ড্যাশবোর্ডে পোস্টগুলো দেখানোর জন্য
+@app.route('/api/posts')
+def get_posts():
+    try:
+        posts = db_manager.get_all_posts()
+        return jsonify({"success": True, "posts": posts})
+    except Exception as e:
+        logger.error(f"Error fetching posts: {e}")
+        return jsonify({"success": False, "posts": []})
 
 @app.route('/api/start', methods=['POST'])
 def start_automation():
@@ -70,7 +82,6 @@ def start_automation():
         
         logger.info("🚀 Starting Main Automation Engine...")
         
-        # আসল AutomationEngine কল করা হচ্ছে
         engine = AutomationEngine(app_state)
         threading.Thread(target=engine.run, daemon=True).start()
         
