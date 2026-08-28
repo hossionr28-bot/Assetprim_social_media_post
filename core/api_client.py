@@ -1,5 +1,5 @@
 import os
-import requests
+import cloudscraper
 import logging
 
 logger = logging.getLogger(__name__)
@@ -15,19 +15,22 @@ class AssetPrimAPI:
         offset = 0
         limit = 100
         
-        # 🛡️ Cloudflare বাইপাস করার জন্য ফেক ব্রাউজার হেডার
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "application/json"
-        }
+        # 🛡️ Cloudflare/Imunify360 বাইপাস করার জন্য Cloudscraper
+        scraper = cloudscraper.create_scraper(
+            browser={
+                'browser': 'chrome',
+                'platform': 'windows',
+                'desktop': True
+            }
+        )
         
         while True:
             try:
                 url = f"{ASSETPRIM_API_URL}?token={ASSETPRIM_API_TOKEN}&limit={limit}&offset={offset}"
                 logger.info(f"Fetching products from API... (Offset: {offset})")
                 
-                # হেডারসহ রিকোয়েস্ট পাঠানো হচ্ছে
-                response = requests.get(url, headers=headers, timeout=30)
+                # requests.get এর বদলে scraper.get
+                response = scraper.get(url, timeout=30)
                 
                 # যদি সার্ভার 200 OK না দেয়
                 if response.status_code != 200:
