@@ -5,7 +5,7 @@ import random
 import requests
 import threading
 from datetime import datetime
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template
 from pymongo import MongoClient
 import google.generativeai as genai
 from dotenv import load_dotenv
