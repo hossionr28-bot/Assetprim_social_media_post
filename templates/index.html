@@ -59,7 +59,8 @@
                     <div class="bg-slate-800/80 px-5 py-4 border-b border-slate-700 flex justify-between items-center backdrop-blur-sm">
                         <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider"><i class="fa-solid fa-terminal mr-2 text-indigo-400"></i> Live Automation Logs</h3>
                         <div class="flex gap-2">
-                            <button onclick="startAuto()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded shadow transition-all"><i class="fa-solid fa-play mr-1"></i> Start</button>
+                            <!-- Start button now redirects to prompts if configured, or starts directly -->
+                            <button onclick="startAuto()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded shadow transition-all"><i class="fa-solid fa-play mr-1"></i> Start System</button>
                             <button onclick="stopAuto()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-4 py-2 rounded shadow transition-all"><i class="fa-solid fa-stop mr-1"></i> Stop</button>
                         </div>
                     </div>
@@ -77,7 +78,7 @@
                         <i class="fa-solid fa-rotate-right mr-2"></i> Refresh List
                     </button>
                 </div>
-                <!-- এখানে কার্ডগুলো লোড হবে -->
+                <!-- Card Container -->
                 <div id="posts-container" class="grid grid-cols-1 gap-8 pb-10">
                     <div class="text-center py-20 bg-white rounded-xl border border-slate-200 shadow-sm text-slate-500">
                         <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4 text-indigo-500"></i><br>
@@ -89,40 +90,57 @@
             <!-- VIEW: PROMPTS -->
             <div id="view-prompts" class="view-section">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-                    <h2 class="text-xl font-bold mb-6 text-slate-800 border-b pb-3">Prompt Builder & Templates</h2>
+                    <h2 class="text-xl font-bold mb-6 text-slate-800 border-b pb-3">Prompt & Platform Builder</h2>
+                    
+                    <!-- NEW: Platform Checkboxes -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-bold text-slate-700 mb-3"><i class="fa-solid fa-share-nodes mr-2 text-indigo-500"></i>1. Select Target Platforms</label>
+                        <div class="flex flex-wrap gap-4" id="platform-checkboxes">
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-lg transition"><input type="checkbox" value="Facebook" checked class="w-4 h-4 text-indigo-600"> Facebook</label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-lg transition"><input type="checkbox" value="Instagram" checked class="w-4 h-4 text-indigo-600"> Instagram</label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-lg transition"><input type="checkbox" value="Telegram" checked class="w-4 h-4 text-indigo-600"> Telegram</label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-lg transition"><input type="checkbox" value="LinkedIn" class="w-4 h-4 text-indigo-600"> LinkedIn</label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-lg transition"><input type="checkbox" value="X/Twitter" class="w-4 h-4 text-indigo-600"> X / Twitter</label>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-8 mb-6">
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Select Template</label>
-                            <select class="w-full border-slate-300 rounded-lg p-3 border bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none transition">
-                                <option>None (Follow Custom Prompt Only)</option>
-                                <option>Short & Punchy</option>
-                                <option>Feature-Driven</option>
-                                <option>Promotional</option>
-                                <option>Urgency / FOMO</option>
+                            <label class="block text-sm font-bold text-slate-700 mb-2"><i class="fa-solid fa-layer-group mr-2 text-indigo-500"></i>2. Select Template</label>
+                            <!-- ID ADDED for reading value -->
+                            <select id="template-select" class="w-full border-slate-300 rounded-lg p-3 border bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                                <option value="None">None (Follow Custom Prompt Only)</option>
+                                <option value="Short & Punchy">Short & Punchy</option>
+                                <option value="Feature-Driven">Feature-Driven</option>
+                                <option value="Promotional">Promotional</option>
+                                <option value="Urgency / FOMO">Urgency / FOMO</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Instruction Priority</label>
+                            <label class="block text-sm font-bold text-slate-700 mb-2"><i class="fa-solid fa-scale-balanced mr-2 text-indigo-500"></i>3. Instruction Priority</label>
                             <select class="w-full border-slate-300 rounded-lg p-3 border bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none transition">
-                                <option>Prompt First</option>
+                                <option>Prompt First (Strict Rule)</option>
                                 <option>Template First</option>
-                                <option>Balanced</option>
                             </select>
                         </div>
                     </div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Custom User Prompt</label>
-                    <textarea class="w-full h-56 border border-slate-300 rounded-lg p-4 font-mono text-sm bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none transition resize-none" placeholder="Write your specific instructions for Gemini here..."></textarea>
+                    
+                    <label class="block text-sm font-bold text-slate-700 mb-2"><i class="fa-solid fa-terminal mr-2 text-indigo-500"></i>4. Custom User Prompt (Gemini will strictly follow this)</label>
+                    <!-- ID ADDED for reading value -->
+                    <textarea id="custom-prompt" class="w-full h-56 border border-slate-300 rounded-lg p-4 font-mono text-sm bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none transition resize-none" placeholder="Example: Write a direct, clean promotional post. DO NOT use emojis. DO NOT write fluff. Mention exactly 3 bullet points..."></textarea>
                     
                     <div class="mt-6 bg-amber-50 border-l-4 border-amber-400 text-amber-800 p-4 rounded-r text-sm shadow-sm">
-                        <p class="font-bold flex items-center"><i class="fa-solid fa-triangle-exclamation mr-2 text-amber-500"></i> Protected System Rules Enforced:</p>
+                        <p class="font-bold flex items-center"><i class="fa-solid fa-triangle-exclamation mr-2 text-amber-500"></i> Protected System Rules Enforced Globally:</p>
                         <ul class="list-disc ml-6 mt-2 space-y-1">
                             <li>No URLs are allowed in the main post.</li>
                             <li>The pinned comment URL is strictly fixed by the server.</li>
-                            <li>AI Hallucinations (inventing features/discounts) are prohibited.</li>
+                            <li>AI Hallucinations (inventing features/discounts) are strictly prohibited.</li>
                         </ul>
                     </div>
                     
-                    <button class="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-lg shadow transition">Save Configuration</button>
+                    <button onclick="startAuto()" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-4 rounded-lg shadow-lg transition text-lg flex items-center justify-center">
+                        <i class="fa-solid fa-play mr-2"></i> Save & Start Automation
+                    </button>
                 </div>
             </div>
 
@@ -133,7 +151,7 @@
                         <i class="fa-solid fa-layer-group"></i>
                     </div>
                     <h2 class="text-2xl font-bold text-slate-800 mb-2">Product Synchronization</h2>
-                    <p class="text-slate-500 max-w-md mx-auto">This module will fetch and display a visual grid of all active products directly from the AssetPrim PHP API.</p>
+                    <p class="text-slate-500 max-w-md mx-auto">This module will fetch and display a visual grid of all active products directly from the AssetPrim API.</p>
                 </div>
             </div>
 
@@ -195,7 +213,6 @@
             
             document.getElementById('page-title').innerText = element.innerText;
 
-            // যদি Generated Posts মেনুতে ক্লিক করা হয়, তবে ডাটা লোড হবে
             if(viewId === 'posts') {
                 loadPosts();
             }
@@ -221,7 +238,6 @@
 
                     let html = '';
                     data.posts.forEach(post => {
-                        // হ্যাশট্যাগগুলোকে সুন্দর করে ফরম্যাট করা
                         let tagsHtml = '';
                         if (post.hashtags && Array.isArray(post.hashtags)) {
                             tagsHtml = post.hashtags.map(t => `<span class="inline-block bg-blue-50 text-blue-600 px-3 py-1 rounded-md text-sm font-medium mr-2 mb-2 border border-blue-100">${t}</span>`).join('');
@@ -229,27 +245,32 @@
                             tagsHtml = '<span class="text-sm text-slate-400 italic">No hashtags provided</span>';
                         }
 
-                        // প্ল্যাটফর্ম অনুযায়ী রঙ পরিবর্তন
                         let platformColor = 'bg-slate-100 text-slate-700';
                         let icon = 'fa-hashtag';
                         if(post.platform === 'Facebook') { platformColor = 'bg-blue-100 text-blue-800'; icon = 'fa-facebook'; }
                         if(post.platform === 'Instagram') { platformColor = 'bg-pink-100 text-pink-800'; icon = 'fa-instagram'; }
                         if(post.platform === 'Telegram') { platformColor = 'bg-sky-100 text-sky-800'; icon = 'fa-telegram'; }
+                        if(post.platform === 'LinkedIn') { platformColor = 'bg-blue-100 text-blue-900'; icon = 'fa-linkedin'; }
 
-                        // প্রোডাক্টের ইমেজ থাকলে দেখাবে, না থাকলে ডিফল্ট আইকন
+                        // NEW: Hover overlay over image to Download/Save
                         let imageHtml = post.product_photo ? 
-                            `<img src="${post.product_photo}" class="w-16 h-16 object-cover rounded-lg shadow-sm border border-slate-200" onerror="this.style.display='none'">` : 
-                            `<div class="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center text-slate-300 text-2xl border border-slate-200"><i class="fa-solid fa-image"></i></div>`;
+                            `<div class="relative group w-20 h-20 flex-shrink-0">
+                                <img src="${post.product_photo}" class="w-full h-full object-cover rounded-lg shadow-sm border border-slate-200" onerror="this.style.display='none'">
+                                <a href="${post.product_photo}" target="_blank" download class="absolute inset-0 bg-black/60 hidden group-hover:flex items-center justify-center text-white rounded-lg transition opacity-0 group-hover:opacity-100" title="View / Save Image">
+                                    <i class="fa-solid fa-download text-xl"></i>
+                                </a>
+                             </div>` : 
+                            `<div class="w-20 h-20 flex-shrink-0 bg-slate-100 rounded-lg flex items-center justify-center text-slate-300 text-2xl border border-slate-200"><i class="fa-solid fa-image"></i></div>`;
 
                         html += `
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300 overflow-hidden">
                             <!-- Header Info -->
                             <div class="bg-slate-50/50 p-6 border-b border-slate-100 flex justify-between items-start">
-                                <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-4 w-full">
                                     ${imageHtml}
-                                    <div>
+                                    <div class="flex-1">
                                         <h3 class="font-bold text-lg text-slate-800 leading-tight">${post.course_title || 'Unknown Product'}</h3>
-                                        <div class="flex items-center gap-3 mt-2">
+                                        <div class="flex items-center justify-between mt-2">
                                             <span class="inline-flex items-center text-[11px] font-bold uppercase tracking-wider ${platformColor} px-2.5 py-1 rounded-md">
                                                 <i class="fa-brands ${icon} mr-1.5 text-sm"></i> ${post.platform || 'General'}
                                             </span>
@@ -285,7 +306,7 @@
                             
                             <!-- Action Footer -->
                             <div class="bg-slate-50 p-4 border-t border-slate-100 flex items-center gap-3">
-                                ${post.product_url ? `<a href="${post.product_url}" target="_blank" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-auto transition-colors"><i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> View Product</a>` : ''}
+                                ${post.product_url ? `<a href="${post.product_url}" target="_blank" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-auto transition-colors"><i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> View URL</a>` : ''}
                                 
                                 <button onclick="copyToClipboard(this, \`${(post.main_post || '').replace(/`/g, '\\`')}\`)" class="bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition-all flex items-center">
                                     <i class="fa-regular fa-copy mr-2"></i> Copy Post
@@ -343,7 +364,44 @@
                 .catch(err => console.error("Status fetch error:", err));
         }, 2000);
 
-        function startAuto() { fetch('/api/start', { method: 'POST' }); }
+        // NEW: startAuto Function now collects input data and sends to backend API
+        function startAuto() { 
+            const template = document.getElementById('template-select') ? document.getElementById('template-select').value : "None";
+            const customPrompt = document.getElementById('custom-prompt') ? document.getElementById('custom-prompt').value : "";
+            
+            // Get selected platforms
+            const platformCheckboxes = document.querySelectorAll('#platform-checkboxes input[type="checkbox"]:checked');
+            const platforms = Array.from(platformCheckboxes).map(cb => cb.value);
+
+            if (platforms.length === 0) {
+                alert("Please select at least one platform to generate content.");
+                // Switch view to prompts if no platform selected
+                switchView('prompts', document.querySelector('a[onclick*="prompts"]'));
+                return;
+            }
+
+            // Send configuration to backend and start engine
+            fetch('/api/start', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    platforms: platforms,
+                    template: template,
+                    custom_prompt: customPrompt
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(!data.success) {
+                    alert("Error: " + data.msg);
+                } else {
+                    // Start success: move user to Overview tab to watch logs
+                    switchView('overview', document.querySelector('a[onclick*="overview"]'));
+                }
+            })
+            .catch(err => console.error(err));
+        }
+
         function stopAuto() { fetch('/api/stop', { method: 'POST' }); }
     </script>
 </body>
