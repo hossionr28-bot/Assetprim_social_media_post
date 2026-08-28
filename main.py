@@ -6,14 +6,13 @@ from flask import Flask, jsonify, render_template, request
 from werkzeug.exceptions import HTTPException
 from dotenv import load_dotenv
 
-# .env লোড করা হচ্ছে
+# .env লোড
 load_dotenv()
 
-# Core মডিউলগুলো ইম্পোর্ট করা হচ্ছে
+# Core মডিউল
 from core.automation import AutomationEngine
 from core.db_manager import DatabaseManager
 
-# ডাটাবেস ম্যানেজার ইনিশিয়ালাইজ করা হলো
 db_manager = DatabaseManager()
 
 # ================= 🌐 GLOBAL STATE =================
@@ -27,7 +26,6 @@ app_state = {
     "logs": []
 }
 
-# ================= 🛠️ LOGGING SETUP =================
 class DashboardLogHandler(logging.Handler):
     def emit(self, record):
         log_entry = self.format(record)
@@ -41,15 +39,12 @@ dash_handler = DashboardLogHandler()
 dash_handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s', datefmt='%H:%M:%S'))
 logger.addHandler(dash_handler)
 
-# ================= 🌐 FLASK APP SETUP =================
 app = Flask(__name__)
 
-# Error Handler (404/Favicon এরর ইগনোর করার জন্য)
 @app.errorhandler(Exception)
 def handle_exception(e):
     if isinstance(e, HTTPException):
         return jsonify({"success": False, "error": e.description}), e.code
-        
     logger.error(f"Server Error: {traceback.format_exc()}")
     return jsonify({"success": False, "error": str(e)}), 500
 
@@ -61,7 +56,6 @@ def dashboard():
 def status():
     return jsonify(app_state)
 
-# 🚀 নতুন রাউট: ড্যাশবোর্ডে পোস্টগুলো দেখানোর জন্য
 @app.route('/api/posts')
 def get_posts():
     try:
@@ -71,18 +65,31 @@ def get_posts():
         logger.error(f"Error fetching posts: {e}")
         return jsonify({"success": False, "posts": []})
 
+# 🚀 এই রাউটটি আপডেট করা হয়েছে
 @app.route('/api/start', methods=['POST'])
 def start_automation():
     if not app_state["is_running"]:
+        # ড্যাশবোর্ড থেকে JSON ডেটা রিসিভ করা হচ্ছে
+        data = request.json or {}
+        
+        platforms = data.get("platforms", ["Facebook", "Instagram", "Telegram"])
+        template = data.get("template", "None")
+        custom_prompt = data.get("custom_prompt", "")
+
+        if not platforms:
+            return jsonify({"success": False, "msg": "Please select at least one platform."})
+
         app_state["is_running"] = True
         app_state["processed"] = 0
         app_state["skipped"] = 0
         app_state["failed"] = 0
         app_state["logs"] = [] 
         
-        logger.info("🚀 Starting Main Automation Engine...")
+        logger.info("🚀 Starting Automation Engine...")
+        logger.info(f"📌 Platforms: {', '.join(platforms)} | Template: {template}")
         
-        engine = AutomationEngine(app_state)
+        # Engine-এ ইউজার সেটিংসগুলো পাঠানো হচ্ছে
+        engine = AutomationEngine(app_state, platforms, template, custom_prompt)
         threading.Thread(target=engine.run, daemon=True).start()
         
         return jsonify({"success": True, "msg": "Automation Started"})
