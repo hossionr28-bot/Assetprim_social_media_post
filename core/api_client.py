@@ -18,11 +18,24 @@ class AssetPrimAPI:
         while True:
             try:
                 url = f"{ASSETPRIM_API_URL}?token={ASSETPRIM_API_TOKEN}&limit={limit}&offset={offset}"
+                logger.info(f"Fetching products from API... (Offset: {offset})")
+                
                 response = requests.get(url, timeout=30)
-                data = response.json()
+                
+                # যদি সার্ভার 200 OK না দেয়
+                if response.status_code != 200:
+                    logger.error(f"API HTTP Error {response.status_code}. Raw response: {response.text[:200]}")
+                    break
+                    
+                # JSON পার্স করার চেষ্টা
+                try:
+                    data = response.json()
+                except Exception as json_err:
+                    logger.error(f"JSON Parse Error: API did not return JSON. Raw response: {response.text[:250]}")
+                    break
                 
                 if not data.get("success"):
-                    logger.error(f"API Error: {data.get('error')}")
+                    logger.error(f"API Logic Error: {data.get('error')}")
                     break
                     
                 courses = data.get("products", [])
