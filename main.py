@@ -10,7 +10,6 @@ load_dotenv()
 
 # Core মডিউলগুলো ইম্পোর্ট করা হচ্ছে
 from core.automation import AutomationEngine
-from core.db_manager import DatabaseManager
 
 # ================= 🌐 GLOBAL STATE =================
 app_state = {
@@ -24,15 +23,13 @@ app_state = {
 }
 
 # ================= 🛠️ LOGGING SETUP =================
-# কাস্টম লগ হ্যান্ডলার (টার্মিনালের লগ ড্যাশবোর্ডে পাঠানোর জন্য)
 class DashboardLogHandler(logging.Handler):
     def emit(self, record):
         log_entry = self.format(record)
         app_state["logs"].append(log_entry)
-        if len(app_state["logs"]) > 100:  # সর্বোচ্চ ১০০টি লগ লাইভ কনসোলে দেখাবে
+        if len(app_state["logs"]) > 100:  
             app_state["logs"].pop(0)
 
-# লগারে কাস্টম হ্যান্ডলার যুক্ত করা
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
 dash_handler = DashboardLogHandler()
@@ -62,11 +59,11 @@ def start_automation():
         app_state["processed"] = 0
         app_state["skipped"] = 0
         app_state["failed"] = 0
-        app_state["logs"] = [] # নতুন করে রান করার সময় পুরনো লগ মুছে যাবে
+        app_state["logs"] = [] 
         
-        logger.info("🚀 Starting Automation Engine...")
+        logger.info("🚀 Starting Main Automation Engine...")
         
-        # AutomationEngine কল করে ব্যাকগ্রাউন্ড থ্রেড চালু করা
+        # আসল AutomationEngine কল করা হচ্ছে
         engine = AutomationEngine(app_state)
         threading.Thread(target=engine.run, daemon=True).start()
         
