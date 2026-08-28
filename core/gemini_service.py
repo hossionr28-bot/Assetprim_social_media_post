@@ -5,14 +5,12 @@ import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=GEMINI_API_KEY)
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel(os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite"))
 
 class GeminiService:
     @staticmethod
     def build_product_url(slug):
-        """URL শুধুমাত্র ব্যাকএন্ড থেকে জেনারেট হবে (Gemini থেকে নয়)"""
         if not slug:
             raise ValueError("Missing slug")
         return f"https://assetprim.com/product-details.php?slug={slug}"
@@ -21,45 +19,51 @@ class GeminiService:
     def generate_content(course, platform, template, custom_prompt):
         product_url = GeminiService.build_product_url(course.get('slug'))
         
-        # 🛡️ Protected System Rules
-        system_rules = f"""
-        You are a Direct Response Copywriter for AssetPrim.
+        # 1. Base System Rules (Strictly Enforced)
+        base_rules = f"""
+        Role: Direct Response Copywriter for AssetPrim.
         Platform: {platform}
+        Product Title: {course.get('title')}
+        Product Description: {course.get('description')}
         
-        PRODUCT DATA:
-        Title: {course['title']}
-        Description: {course['description']}
+        CRITICAL RULES (DO NOT VIOLATE):
+        - NO URLs inside 'main_post'.
+        - 'pinned_comment' MUST contain exactly this URL: {product_url}
+        - Do not invent fake features, modules, or discounts.
+        - Output strictly in JSON format.
+        """
         
-        CRITICAL PROTECTED RULES (DO NOT VIOLATE):
-        1. NO URLs inside 'main_post'.
-        2. Never invent features, discounts, or modules. Use ONLY the provided Product Data.
-        3. The 'pinned_comment' MUST contain exactly this URL and nothing else: {product_url}
-        4. End the main_post with a CTA to check the pinned comment.
+        # 2. Template Logic
+        template_instruction = ""
+        if template != "None":
+            template_instruction = f"TEMPLATE STYLE: Apply a '{template}' marketing framework."
+            
+        # 3. Final Prompt Assembly
+        final_prompt = f"""
+        {base_rules}
         
-        USER CUSTOM INSTRUCTION: {custom_prompt if custom_prompt else "Make it clean and highly engaging."}
-        TEMPLATE STYLE: {template if template != "None" else "Follow user instruction primarily."}
+        USER INSTRUCTION: {custom_prompt if custom_prompt else "Create clean, highly engaging content based on the product description."}
+        {template_instruction}
         
-        OUTPUT FORMAT: JSON ONLY (No markdown formatting)
+        JSON FORMAT REQUIRED:
         {{
-            "headline": "String",
-            "main_post": "String",
-            "hashtags": ["#tag1", "#tag2"],
-            "pinned_comment": "String"
+            "headline": "...",
+            "main_post": "...",
+            "hashtags": ["#tag1"],
+            "pinned_comment": "..."
         }}
         """
         
         try:
-            response = model.generate_content(system_rules)
+            response = model.generate_content(final_prompt)
             text = response.text.replace('```json', '').replace('```', '').strip()
             result = json.loads(text)
             
-            # 🛡️ AI Validation Check
+            # AI Validation: Force remove URL if AI hallucinates it into main_post
             if "http" in result.get("main_post", ""):
-                logger.warning("Validation Failed: URL found in main_post. Removing it.")
-                result["main_post"] = result["main_post"].replace(product_url, "")
+                result["main_post"] = result["main_post"].replace(product_url, "").strip()
                 
             return result, product_url
-            
         except Exception as e:
-            logger.error(f"Gemini Generation Error: {e}")
+            logger.error(f"Gemini Error: {e}")
             return None, None
