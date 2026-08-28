@@ -200,8 +200,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def dashboard():
-    # সাময়িকভাবে একটি সিম্পল ড্যাশবোর্ড (পরবর্তীতে templates/index.html এ সরাবো)
-    return """
+    return render_template('index.html')
     <html>
         <head><title>AssetPrim Automation</title></head>
         <body style="font-family: Arial; padding: 20px;">
