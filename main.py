@@ -3,6 +3,7 @@ import threading
 import logging
 import traceback
 from flask import Flask, jsonify, render_template, request
+from werkzeug.exceptions import HTTPException
 from dotenv import load_dotenv
 
 # .env লোড করা হচ্ছে
@@ -39,8 +40,14 @@ logger.addHandler(dash_handler)
 # ================= 🌐 FLASK APP SETUP =================
 app = Flask(__name__)
 
+# Error Handler (404/Favicon এরর ইগনোর করার জন্য ফিক্স করা হয়েছে)
 @app.errorhandler(Exception)
 def handle_exception(e):
+    # যদি এটি সাধারণ 404 বা HTTP এরর হয়, তবে বিশাল লগ না দেখিয়ে ইগনোর করবে
+    if isinstance(e, HTTPException):
+        return jsonify({"success": False, "error": e.description}), e.code
+        
+    # শুধুমাত্র আসল কোড ক্র্যাশ করলে লগে দেখাবে
     logger.error(f"Server Error: {traceback.format_exc()}")
     return jsonify({"success": False, "error": str(e)}), 500
 
