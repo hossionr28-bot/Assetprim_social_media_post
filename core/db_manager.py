@@ -31,7 +31,7 @@ class DatabaseManager:
             self.posts_col.insert_one(data)
 
     def log_error(self, course_id, platform, reason):
-        """ব্যর্থ হওয়া জবগুলো সেভ করবে"""
+        """ব্যর্থ হওয়া জবগুলো সেভ করবে"""
         if self.db is not None:
             self.failed_col.insert_one({
                 "course_id": course_id,
@@ -39,3 +39,15 @@ class DatabaseManager:
                 "reason": reason,
                 "created_at": datetime.now()
             })
+
+    def get_all_posts(self):
+        """ড্যাশবোর্ডে দেখানোর জন্য ডাটাবেস থেকে সব পোস্ট নিয়ে আসবে"""
+        if self.db is None: return []
+        posts = []
+        # লেটেস্ট পোস্টগুলো আগে দেখাবে (sort by created_at descending)
+        for post in self.posts_col.find({}, {"_id": 0}).sort("created_at", -1):
+            if "created_at" in post:
+                # ড্যাশবোর্ডে সুন্দরভাবে দেখানোর জন্য ডেট ফরম্যাট করা হচ্ছে
+                post["created_at"] = post["created_at"].strftime("%Y-%m-%d %H:%M:%S")
+            posts.append(post)
+        return posts
