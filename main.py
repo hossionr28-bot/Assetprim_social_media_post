@@ -1,49 +1,16 @@
 import os
-import json
-import time
-import random
-import requests
 import threading
 import logging
 import traceback
-from datetime import datetime
-from flask import Flask, request, jsonify, render_template
-from pymongo import MongoClient
-import google.generativeai as genai
+from flask import Flask, jsonify, render_template, request
 from dotenv import load_dotenv
 
-# --- Advanced Debugging & Logging Setup ---
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-# .env লোড
+# .env লোড করা হচ্ছে
 load_dotenv()
 
-# ================= ⚙️ CONFIGURATION =================
-ASSETPRIM_API_URL = os.getenv("ASSETPRIM_API_URL", "https://assetprim.com/api/products.php")
-ASSETPRIM_API_TOKEN = os.getenv("ASSETPRIM_API_TOKEN", "your_super_secret_token_here_2026")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-MONGO_URI = os.getenv("MONGO_URI")
-
-# Gemini Setup
-try:
-    genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-3.1-flash-lite')
-    logger.info("✅ Gemini API Configured.")
-except Exception as e:
-    logger.error(f"❌ Gemini Setup Failed: {e}")
-
-# MongoDB Setup
-try:
-    mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-    mongo_client.server_info() # Force connection check
-    db = mongo_client["assetprim_automation"]
-    posts_col = db["generated_posts"]
-    logs_col = db["automation_logs"]
-    logger.info("✅ MongoDB Connected Successfully!")
-except Exception as e:
-    logger.error(f"❌ MongoDB Connection Error:\n{traceback.format_exc()}")
-    db, posts_col, logs_col = None, None, None
+# Core মডিউলগুলো ইম্পোর্ট করা হচ্ছে
+from core.automation import AutomationEngine
+from core.db_manager import DatabaseManager
 
 # ================= 🌐 GLOBAL STATE =================
 app_state = {
@@ -56,43 +23,29 @@ app_state = {
     "logs": []
 }
 
-def add_log(msg, level="info"):
-    timestamp = datetime.now().strftime('%H:%M:%S')
-    log_msg = f"[{timestamp}] {msg}"
-    
-    if level == "error":
-        logger.error(msg)
-    else:
-        logger.info(msg)
-        
-    app_state["logs"].append(log_msg)
-    if len(app_state["logs"]) > 100:
-        app_state["logs"].pop(0)
-    
-    if logs_col is not None:
-        try:
-            logs_col.insert_one({"timestamp": datetime.now(), "level": level, "message": msg})
-        except Exception as e:
-            logger.error(f"Could not save log to DB: {e}")
+# ================= 🛠️ LOGGING SETUP =================
+# কাস্টম লগ হ্যান্ডলার (টার্মিনালের লগ ড্যাশবোর্ডে পাঠানোর জন্য)
+class DashboardLogHandler(logging.Handler):
+    def emit(self, record):
+        log_entry = self.format(record)
+        app_state["logs"].append(log_entry)
+        if len(app_state["logs"]) > 100:  # সর্বোচ্চ ১০০টি লগ লাইভ কনসোলে দেখাবে
+            app_state["logs"].pop(0)
 
-# (এখানে automation_worker, fetch_all_active_courses ফাংশনগুলো আপাতত আগের মতোই থাকবে। 
-# পরের ধাপে আমরা এগুলোকে core/ ফোল্ডারে সরিয়ে নেব।)
-def dummy_automation_worker():
-    add_log("🚀 Automation test started...", "info")
-    app_state["status_msg"] = "Running test mode..."
-    time.sleep(5)
-    add_log("✅ Automation test completed.", "info")
-    app_state["is_running"] = False
-    app_state["status_msg"] = "Idle"
+# লগারে কাস্টম হ্যান্ডলার যুক্ত করা
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger()
+dash_handler = DashboardLogHandler()
+dash_handler.setFormatter(logging.Formatter('[%(asctime)s] %(message)s', datefmt='%H:%M:%S'))
+logger.addHandler(dash_handler)
 
-# ================= 🌐 FLASK WEB ROUTES =================
+# ================= 🌐 FLASK APP SETUP =================
 app = Flask(__name__)
 
-# Error Handler for debugging
 @app.errorhandler(Exception)
 def handle_exception(e):
     logger.error(f"Server Error: {traceback.format_exc()}")
-    return jsonify({"success": False, "error": str(e), "traceback": traceback.format_exc()}), 500
+    return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/')
 def dashboard():
@@ -106,16 +59,28 @@ def status():
 def start_automation():
     if not app_state["is_running"]:
         app_state["is_running"] = True
-        threading.Thread(target=dummy_automation_worker, daemon=True).start()
+        app_state["processed"] = 0
+        app_state["skipped"] = 0
+        app_state["failed"] = 0
+        app_state["logs"] = [] # নতুন করে রান করার সময় পুরনো লগ মুছে যাবে
+        
+        logger.info("🚀 Starting Automation Engine...")
+        
+        # AutomationEngine কল করে ব্যাকগ্রাউন্ড থ্রেড চালু করা
+        engine = AutomationEngine(app_state)
+        threading.Thread(target=engine.run, daemon=True).start()
+        
         return jsonify({"success": True, "msg": "Automation Started"})
     return jsonify({"success": False, "msg": "Already Running"})
 
 @app.route('/api/stop', methods=['POST'])
 def stop_automation():
-    app_state["is_running"] = False
-    add_log("🛑 Stop command received.", "error")
-    return jsonify({"success": True, "msg": "Stopping loop..."})
+    if app_state["is_running"]:
+        app_state["is_running"] = False
+        logger.warning("🛑 Stop command received. Halting after current task...")
+        return jsonify({"success": True, "msg": "Stopping loop..."})
+    return jsonify({"success": False, "msg": "Not running"})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=False)
